@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"github.com/gin-gonic/gin"
+	node_req "kubeimook/model/node/request"
 	"kubeimook/response"
 )
 
@@ -29,4 +30,32 @@ func (*NodeApi) GetNodeDetailOrList(ctx *gin.Context) {
 	}
 
 	return
+}
+func (*NodeApi) UpdatedNodeLabel(ctx *gin.Context) {
+	var updateLabels node_req.UpdatedLabel
+	if err := ctx.ShouldBindJSON(&updateLabels); err != nil {
+		response.FailWithMessage(ctx, "参数解析失败")
+		return
+	} else {
+		err := nodeService.UpdateNodeLabel(updateLabels)
+		if err != nil {
+			response.FailWithMessage(ctx, "更新节点标签失败")
+		} else {
+			response.SuccessWithMessage(ctx, "更新节点标签成功")
+		}
+	}
+}
+
+func (*NodeApi) UpdaNodeTaint(ctx *gin.Context) {
+	var updateTaints node_req.UpdatedTaint
+	if err := ctx.ShouldBindJSON(&updateTaints); err != nil {
+		response.FailWithMessage(ctx, "参数解析失败")
+	} else {
+		err := nodeService.UpdateNodeTaint(updateTaints)
+		if err != nil {
+			response.FailWithMessage(ctx, "更新节点污点失败")
+		} else {
+			response.SuccessWithMessage(ctx, "更新节点污点成功")
+		}
+	}
 }

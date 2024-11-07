@@ -17,5 +17,7 @@ func (*K8sRouter) InitK8sRouter(r *gin.Engine) {
 
 	// node schedule相关
 	group.GET("/node", apiGroup.GetNodeDetailOrList)
+	group.PUT("/node/label", apiGroup.UpdatedNodeLabel)
+	group.PUT("/node/taint", apiGroup.UpdaNodeTaint)
 
 }

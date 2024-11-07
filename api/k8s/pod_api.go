@@ -73,7 +73,7 @@ func (*PodApi) GetPodListOrDetail(c *gin.Context) {
 			response.SuccessWithDetailed(c, "获取成功", req)
 		}
 	} else {
-		req, err := podService.GetPodList(namespace, keyword)
+		req, err := podService.GetPodList(namespace, keyword, c.Query("nodename"))
 		if err != nil {
 			response.FailWithMessage(c, "查询失败"+err.Error())
 		} else {

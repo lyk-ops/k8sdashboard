@@ -17,7 +17,7 @@ import (
 type PodService struct {
 }
 
-func (*PodService) GetPodList(namespace string, keyword string) ([]pod_res.PodListItem, error) {
+func (*PodService) GetPodList(namespace string, keyword string, nodename string) ([]pod_res.PodListItem, error) {
 	ctx := context.TODO()
 	list, err := global.KubeConfigSet.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
@@ -25,6 +25,9 @@ func (*PodService) GetPodList(namespace string, keyword string) ([]pod_res.PodLi
 	}
 	podList := make([]pod_res.PodListItem, len(list.Items))
 	for _, item := range list.Items {
+		if nodename != "" && item.Spec.NodeName != nodename {
+			continue
+		}
 		if strings.Contains(item.Name, keyword) {
 			podRItem := podConvert.PodK8s2ItemRes(item)
 			podList = append(podList, podRItem)
