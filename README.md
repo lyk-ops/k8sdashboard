@@ -47,4 +47,11 @@ go get -u k8s.io/client-go
 pod管理接口改动
 - pod新增容忍参数 tolerations
 - Pod选择哪种方式调度 NodeName NodeSelector NodeAffinity
-- 
+
+### 应用与配置分离接口
+- configMap 新增、删除、修改、查询
+- Secret 新增、修改、删除、查询
+  - Pod管理接口改动
+- 新增ConfigMap和configmapkey
+- 新增secret和secretkey
+###

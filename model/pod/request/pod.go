@@ -1,6 +1,9 @@
 package request
 
-import "kubeimook/model/base"
+import (
+	corev1 "k8s.io/api/core/v1"
+	"kubeimook/model/base"
+)
 
 type Base struct {
 	Name          string             `json:"name"`
@@ -87,11 +90,25 @@ type Container struct {
 	ReadinessProbe  ContainerProbe     `json:"readinessProbe"` //就绪探针
 	Ports           []ContainerPort    `json:"ports"`          //端口映射
 }
+type NodeSelectTermExpressions struct {
+	Key      string                      `json:"key"`
+	Operator corev1.NodeSelectorOperator `json:"operator"`
+	Values   string
+}
+type NodeScheduling struct {
+	// nodeName nodeSelector nodeAffinity
+	Type         string                      `json:"type"`         //调度类型
+	NodeName     string                      `json:"nodeName"`     //节点名称
+	NodeSelector []base.ListMapItem          `json:"nodeSelector"` //节点选择器
+	NodeAffinity []NodeSelectTermExpressions `json:"nodeAffinity"` //节点亲和性
+}
 type Pod struct {
-	Base           Base        `json:"base"`
-	Volumes        []Volume    `json:"volumes"`
-	Networking     Networking  `json:"networking"`
-	InitContainers []Container `json:"initContainers"`
-	Containers     []Container `json:"containers"`
+	Base           Base                `json:"base"`
+	Tolerations    []corev1.Toleration `json:"tolerations"`
+	NodeScheduling NodeScheduling      `json:"nodeScheduling"`
+	Volumes        []Volume            `json:"volumes"`
+	Networking     Networking          `json:"networking"`
+	InitContainers []Container         `json:"initContainers"`
+	Containers     []Container         `json:"containers"`
 	//
 }

@@ -12,17 +12,67 @@ import (
 )
 
 const (
-	probe_http      = "http"
-	probe_tcp       = "tcp"
-	probe_exec      = "exec"
-	volume_emptyDir = "emptyDir"
+	probe_http              = "http"
+	probe_tcp               = "tcp"
+	probe_exec              = "exec"
+	volume_emptyDir         = "emptyDir"
+	scheduling_nodename     = "=nodeName"
+	scheduling_nodeselector = "=nodeSelector"
+	scheduling_nodeaffinity = "=nodeAffinity"
+	scheduling_nodeany      = "nodeAny"
 )
 
 type Req2K8sConvert struct {
 }
 
+func getNodeK8sScheduling(podReq pod_req.Pod) (affinity *corev1.Affinity, nodeSelector map[string]string, nodeName string) {
+	nodeScheduling := podReq.NodeScheduling
+	switch nodeScheduling.Type {
+	case scheduling_nodename:
+		nodeName = nodeScheduling.NodeName
+		return
+	case scheduling_nodeselector:
+		nodeSelectorMap := make(map[string]string)
+		for _, item := range nodeScheduling.NodeSelector {
+			nodeSelector[item.Key] = item.Value
+		}
+		nodeSelector = nodeSelectorMap
+		return
+	case scheduling_nodeaffinity:
+		nodeSelectorTermExpressions := nodeScheduling.NodeAffinity
+		matchExpressions := make([]corev1.NodeSelectorRequirement, 0)
+		for _, expression := range nodeSelectorTermExpressions {
+			matchExpressions = append(matchExpressions, corev1.NodeSelectorRequirement{
+				Key:      expression.Key,
+				Operator: expression.Operator,
+				Values:   strings.Split(expression.Values, ","),
+			})
+
+		}
+		affinity = &corev1.Affinity{
+			NodeAffinity: &corev1.NodeAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+					NodeSelectorTerms: []corev1.NodeSelectorTerm{
+						{
+							MatchExpressions: matchExpressions,
+						},
+					},
+				},
+			},
+		}
+	case scheduling_nodeany:
+		// do nothing
+	default:
+		// do nothing
+
+	}
+	return
+
+}
+
 // 将pod的 请求格式 的数据转换为k8s结构的数据
 func (pc *Req2K8sConvert) PodReq2K8s(podReq pod_req.Pod) *corev1.Pod {
+	affinity, selector, name := getNodeK8sScheduling(podReq)
 	return &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      podReq.Base.Name,
@@ -30,6 +80,10 @@ func (pc *Req2K8sConvert) PodReq2K8s(podReq pod_req.Pod) *corev1.Pod {
 			Namespace: podReq.Base.Namespace,
 		},
 		Spec: corev1.PodSpec{
+			NodeName:       name,
+			NodeSelector:   selector,
+			Affinity:       affinity,
+			Tolerations:    podReq.Tolerations,
 			InitContainers: pc.GetK8sContainers(podReq.InitContainers),
 			Containers:     pc.GetK8sContainers(podReq.Containers),
 			Volumes:        pc.getK8sVolumes(podReq.Volumes),
