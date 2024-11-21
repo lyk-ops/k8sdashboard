@@ -24,4 +24,9 @@ func (*K8sRouter) InitK8sRouter(r *gin.Engine) {
 	group.GET("/configmap/:namespace", apiGroup.GetConfigMapDetailOrList)
 	group.POST("/configmap", apiGroup.CreateOrUpdateConfigMap)
 	group.DELETE("/configmap/:namespace/:name", apiGroup.DeleteConfigMap)
+
+	//Secret
+	group.POST("/secret", apiGroup.CreateOrUpdateSecret)
+	group.GET("/secret/:namespace", apiGroup.GetSecretDetailOrList)
+	group.DELETE("/secret/:namespace/:name", apiGroup.DeleteSecret)
 }

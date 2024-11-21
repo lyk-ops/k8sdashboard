@@ -2,8 +2,8 @@ package configmap
 
 import (
 	corev1 "k8s.io/api/core/v1"
-	"kubeimook/model/base"
 	configmapres "kubeimook/model/configmap/response"
+	"kubeimook/utils"
 )
 
 type K8s2Res struct{}
@@ -19,9 +19,8 @@ func (*K8s2Res) GetCmReqItem(configMap corev1.ConfigMap) configmapres.ConfigMap 
 }
 func (this *K8s2Res) GetCmReqDetail(configMap corev1.ConfigMap) configmapres.ConfigMap {
 	detail := this.GetCmReqItem(configMap)
-	var baseListMapItem base.ListMapItem
-	detail.Labels = baseListMapItem.ToList(configMap.Labels)
-	detail.Data = baseListMapItem.ToList(configMap.Data)
+	detail.Labels = utils.ToList(configMap.Labels)
+	detail.Data = utils.ToList(configMap.Data)
 	return detail
 
 }
