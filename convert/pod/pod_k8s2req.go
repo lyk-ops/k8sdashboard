@@ -111,7 +111,8 @@ func (this *K8s2ReqConvert) getReqContanier(container corev1.Container) pod_req.
 		//
 		Ports:          getReqContainerPorts(container.Ports),
 		Args:           container.Args,
-		Env:            getReqContainersEnvs(container.Env),
+		Envs:           getReqContainersEnvs(container.Env),
+		EnvsFrom:       getReqContainersEnvsFrom(container.EnvFrom),
 		Privileged:     getReqContainerPrivileged(container.SecurityContext),
 		Resources:      getReqContainerResources(container.Resources),
 		VolumeMounts:   this.getReqContainerVolumeMount(container.VolumeMounts),
@@ -119,6 +120,25 @@ func (this *K8s2ReqConvert) getReqContanier(container corev1.Container) pod_req.
 		LivenessProbe:  getReqContainerProbe(container.LivenessProbe),
 		ReadinessProbe: getReqContainerProbe(container.ReadinessProbe),
 	}
+}
+
+func getReqContainersEnvsFrom(from []corev1.EnvFromSource) []pod_req.EnvVarFromResource {
+	podReqEnvsFromList := make([]pod_req.EnvVarFromResource, 0)
+	for _, envK8sItem := range from {
+		podReqEnvsFrom := pod_req.EnvVarFromResource{
+			Prefix: envK8sItem.Prefix,
+		}
+		if envK8sItem.ConfigMapRef != nil {
+			podReqEnvsFrom.RefType = ref_type_configMap
+			podReqEnvsFrom.Name = envK8sItem.ConfigMapRef.Name
+		}
+		if envK8sItem.SecretRef != nil {
+			podReqEnvsFrom.RefType = ref_type_secret
+			podReqEnvsFrom.Name = envK8sItem.ConfigMapRef.Name
+		}
+		podReqEnvsFromList = append(podReqEnvsFromList, podReqEnvsFrom)
+	}
+	return podReqEnvsFromList
 }
 func getReqContainerResources(requirements corev1.ResourceRequirements) pod_req.Resources {
 	reqResources := pod_req.Resources{
@@ -207,13 +227,27 @@ func (this *K8s2ReqConvert) getReqContainerVolumeMount(volumeMountK8s []corev1.V
 	}
 	return volumesReq
 }
-func getReqContainersEnvs(envsK8s []corev1.EnvVar) []base.ListMapItem {
-	envsReq := make([]base.ListMapItem, 0)
+func getReqContainersEnvs(envsK8s []corev1.EnvVar) []pod_req.EnvVar {
+	envsReq := make([]pod_req.EnvVar, 0)
 	for _, env := range envsK8s {
-		envsReq = append(envsReq, base.ListMapItem{
-			Key:   env.Name,
-			Value: env.Value,
-		})
+		envVar := pod_req.EnvVar{
+			Name: env.Name,
+		}
+		if env.ValueFrom != nil {
+			if env.ValueFrom.ConfigMapKeyRef != nil {
+				envVar.Type = ref_type_configMap
+				envVar.Value = env.ValueFrom.ConfigMapKeyRef.Key
+				envVar.RefName = env.ValueFrom.ConfigMapKeyRef.Name
+			}
+			if env.ValueFrom.SecretKeyRef != nil {
+				envVar.Type = ref_type_secret
+				envVar.Value = env.ValueFrom.SecretKeyRef.Key
+				envVar.RefName = env.ValueFrom.SecretKeyRef.Name
+			}
+		} else {
+			envVar.Value = env.Value
+		}
+		envsReq = append(envsReq, envVar)
 	}
 	return envsReq
 

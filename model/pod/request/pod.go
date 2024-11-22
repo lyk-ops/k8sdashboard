@@ -73,23 +73,37 @@ type ContainerPort struct {
 	ContainerPort int32  `json:"containerPort"`
 	HostPort      int32  `json:"hostPort"`
 }
-type Container struct {
-	Name            string             `json:"name"`
-	Image           string             `json:"image"`
-	ImagePullPolicy string             `json:"imagePullPolicy"`
-	Tty             bool               `json:"tty"`            //是否开启tty
-	WorkingDir      string             `json:"workingDir"`     //工作目录
-	Command         []string           `json:"command"`        // 命令
-	Args            []string           `json:"args"`           // 参数
-	Env             []base.ListMapItem `json:"env"`            // 环境变量
-	Privileged      bool               `json:"privileged"`     //是否特权模式
-	Resources       Resources          `json:"resources"`      //资源限制
-	VolumeMounts    []VolumeMounts     `json:"volumeMounts"`   //挂载卷
-	StartupProbe    ContainerProbe     `json:"startupProbe"`   //启动探针
-	LivenessProbe   ContainerProbe     `json:"livenessProbe"`  //存活探针
-	ReadinessProbe  ContainerProbe     `json:"readinessProbe"` //就绪探针
-	Ports           []ContainerPort    `json:"ports"`          //端口映射
+type EnvVar struct {
+	Name    string `json:"name"`
+	RefName string `json:"refName"`
+	Type    string `json:"type"` // env type
+	// configmap secret default(key:value)
+	Value string `json:"value"`
 }
+type EnvVarFromResource struct {
+	Name    string `json:"name"`    // 资源名称
+	RefType string `json:"refType"` // 资源类型 configmap secret
+	Prefix  string `json:"prefix"`  // 资源前缀,用于表示环境变量前缀
+}
+type Container struct {
+	Name            string               `json:"name"`
+	Image           string               `json:"image"`
+	ImagePullPolicy string               `json:"imagePullPolicy"`
+	Tty             bool                 `json:"tty"`        //是否开启tty
+	WorkingDir      string               `json:"workingDir"` //工作目录
+	Command         []string             `json:"command"`    // 命令
+	Args            []string             `json:"args"`       // 参数
+	Envs            []EnvVar             `json:"envs"`       // 环境变量
+	EnvsFrom        []EnvVarFromResource `json:"envsFrom"`
+	Privileged      bool                 `json:"privileged"`     //是否特权模式
+	Resources       Resources            `json:"resources"`      //资源限制
+	VolumeMounts    []VolumeMounts       `json:"volumeMounts"`   //挂载卷
+	StartupProbe    ContainerProbe       `json:"startupProbe"`   //启动探针
+	LivenessProbe   ContainerProbe       `json:"livenessProbe"`  //存活探针
+	ReadinessProbe  ContainerProbe       `json:"readinessProbe"` //就绪探针
+	Ports           []ContainerPort      `json:"ports"`          //端口映射
+}
+
 type NodeSelectTermExpressions struct {
 	Key      string                      `json:"key"`
 	Operator corev1.NodeSelectorOperator `json:"operator"`

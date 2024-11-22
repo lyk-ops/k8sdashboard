@@ -20,6 +20,8 @@ const (
 	scheduling_nodeselector = "=nodeSelector"
 	scheduling_nodeaffinity = "=nodeAffinity"
 	scheduling_nodeany      = "nodeAny"
+	ref_type_configMap      = "configMap"
+	ref_type_secret         = "secret"
 )
 
 type Req2K8sConvert struct {
@@ -141,7 +143,8 @@ func (pc *Req2K8sConvert) GetK8sContainer(podReqContainer pod_req.Container) cor
 		Command:         podReqContainer.Command,
 		Args:            podReqContainer.Args,
 		Ports:           pc.getK8sPorts(podReqContainer.Ports),
-		Env:             pc.getK8sEnv(podReqContainer.Env),
+		Env:             pc.getK8sEnv(podReqContainer.Envs),
+		EnvFrom:         pc.getK8sEnvsFrom(podReqContainer.EnvsFrom),
 		SecurityContext: &corev1.SecurityContext{
 			Privileged: &podReqContainer.Privileged,
 		},
@@ -225,13 +228,36 @@ func (pc *Req2K8sConvert) getK8sVolumentMount(podReqMounts []pod_req.VolumeMount
 	}
 	return podK8sVolumeMounts
 }
-func (pc *Req2K8sConvert) getK8sEnv(podReqEnvs []base.ListMapItem) []corev1.EnvVar {
+func (pc *Req2K8sConvert) getK8sEnv(podReqEnvs []pod_req.EnvVar) []corev1.EnvVar {
 	podK8sEnvs := make([]corev1.EnvVar, 0)
 	for _, env := range podReqEnvs {
-		podK8sEnvs = append(podK8sEnvs, corev1.EnvVar{
-			Name:  env.Key,
-			Value: env.Value,
-		})
+		envVar := corev1.EnvVar{
+			Name: env.Name,
+		}
+		switch env.Type {
+		case ref_type_configMap:
+			envVar.ValueFrom = &corev1.EnvVarSource{
+				ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
+					Key: env.Value,
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: env.RefName,
+					},
+				},
+			}
+		case ref_type_secret:
+			envVar.ValueFrom = &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					Key: env.Value,
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: env.RefName,
+					},
+				},
+			}
+		default:
+			envVar.Value = env.Value
+
+		}
+		podK8sEnvs = append(podK8sEnvs, envVar)
 	}
 	return podK8sEnvs
 }
@@ -243,4 +269,32 @@ func (*Req2K8sConvert) getK8sLabels(podReqLabels []base.ListMapItem) map[string]
 		podK8sLabels[label.Key] = label.Value
 	}
 	return podK8sLabels
+}
+
+func (pc *Req2K8sConvert) getK8sEnvsFrom(podReqEnvsFrom []pod_req.EnvVarFromResource) []corev1.EnvFromSource {
+	podK8sEnvsFrom := make([]corev1.EnvFromSource, 0)
+	for _, fromResource := range podReqEnvsFrom {
+		//前缀通用
+		envFromResource := corev1.EnvFromSource{
+			Prefix: fromResource.Prefix,
+		}
+		switch fromResource.RefType {
+		case ref_type_configMap:
+			envFromResource.ConfigMapRef = &corev1.ConfigMapEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: fromResource.Name,
+				},
+			}
+			podK8sEnvsFrom = append(podK8sEnvsFrom, envFromResource)
+		case ref_type_secret:
+			envFromResource.SecretRef = &corev1.SecretEnvSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: fromResource.Name,
+				},
+			}
+			podK8sEnvsFrom = append(podK8sEnvsFrom, envFromResource)
+		}
+
+	}
+	return podK8sEnvsFrom
 }

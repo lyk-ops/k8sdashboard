@@ -6,6 +6,7 @@ import (
 	"kubeimook/global"
 	secretreq "kubeimook/model/secret/request"
 	secretRes "kubeimook/model/secret/response"
+	"strings"
 )
 
 type SecretService struct {
@@ -26,11 +27,18 @@ func (SecretService) GetSecretList(namespace string, keyword string) ([]secretRe
 		return nil, err2
 	}
 	secretResList := make([]secretRes.Secret, 0)
+	//for _, item := range list.Items {
+	//	if keyword == "" || (item.Name+item.Namespace) == keyword {
+	//		secretRes := secretConvert.SecretK8sResItemConvert(item)
+	//		secretResList = append(secretResList, secretRes)
+	//	}
+	//}
 	for _, item := range list.Items {
-		if keyword == "" || (item.Name+item.Namespace) == keyword {
-			secretRes := secretConvert.SecretK8sResItemConvert(item)
-			secretResList = append(secretResList, secretRes)
+		if !strings.Contains(item.Name, keyword) {
+			continue
 		}
+		secretRes := secretConvert.SecretK8sResItemConvert(item)
+		secretResList = append(secretResList, secretRes)
 	}
 	return secretResList, nil
 
