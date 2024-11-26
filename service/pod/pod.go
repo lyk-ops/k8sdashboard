@@ -82,7 +82,7 @@ func (*PodService) CreateOrUpdatePod(podReq pod_req.Pod) (msg string, err error)
 		for k, v := range k8sGetPod.Labels {
 			labelSelector = append(labelSelector, fmt.Sprintf("%s=%s", k, v))
 		}
-		//label格式 k1=v1,k2=v2
+		//label格式 k1=v1,k2=v2,通过标签去进行watch
 		watcher, err := podApi.Watch(ctx, metav1.ListOptions{
 			LabelSelector: strings.Join(labelSelector, ","),
 		})
