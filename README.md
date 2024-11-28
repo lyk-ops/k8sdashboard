@@ -55,3 +55,19 @@ pod管理接口改动
 - 新增ConfigMap和configmapkey
 - 新增secret和secretkey
 ###
+
+### K8s卷管理
+PersistentVolume
+- 创建
+- 删除
+- 查看  列表
+PersistentVolumeClaim
+- 创建
+- 删除
+- 查看  列表
+SotrageClass
+- 创建
+- 删除
+- 查看  列表
+
+pod管理的修改（卷管理）

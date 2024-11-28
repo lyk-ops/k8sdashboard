@@ -11,6 +11,7 @@ type ApiGroup struct {
 	NodeApi
 	ConfigMapApi
 	SecretApi
+	PVApi
 }
 
 var podValidate = validate.ValidateGroupApp.PodValidate
@@ -18,3 +19,4 @@ var podService = service.ServiceGroupApp.PodServiceGroup.PodService
 var nodeService = service.ServiceGroupApp.NodeServiceGroup.NodeService
 var configMapService = service.ServiceGroupApp.ConfigMapServiceGroup.ConfigMapService
 var secretService = service.ServiceGroupApp.SecretServiceGroup.SecretService
+var pvService = service.ServiceGroupApp.PvServiceGroup.PVService

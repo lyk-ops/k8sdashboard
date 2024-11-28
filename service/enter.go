@@ -4,6 +4,7 @@ import (
 	"kubeimook/service/configmap"
 	"kubeimook/service/node"
 	"kubeimook/service/pod"
+	"kubeimook/service/pv"
 	"kubeimook/service/secret"
 )
 
@@ -12,6 +13,7 @@ type ServiceGroup struct {
 	NodeServiceGroup      node.Group
 	ConfigMapServiceGroup configmap.ServiceGroup
 	SecretServiceGroup    secret.ServiceGroup
+	PvServiceGroup        pv.ServiceGroup
 }
 
 var ServiceGroupApp = new(ServiceGroup)
