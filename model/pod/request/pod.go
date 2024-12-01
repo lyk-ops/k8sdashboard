@@ -13,9 +13,37 @@ type Base struct {
 
 	//
 }
+type ConfigMapRefVolume struct {
+	Name     string `json:"name"`
+	Optional bool   `json:"optional"`
+}
+type SecretRefVolume struct {
+	Name     string `json:"name"`
+	Optional bool   `json:"optional"`
+}
+type HostPathVolume struct {
+	Path string              `json:"path"` // 宿主机路径
+	Type corev1.HostPathType `json:"type"`
+}
+type DownWardAPIVolumeItem struct {
+	Path         string `json:"path"` // 容器路径
+	FieldRefPath string `json:"fieldRefPath"`
+}
+type DownWardAPIVolume struct {
+	Items []DownWardAPIVolumeItem `json:"items"`
+}
+type PvcVolume struct {
+	ClaimName string `json:"claimName"`
+}
 type Volume struct {
 	Name string `json:"name"`
-	Type string `json:"type"`
+	// emptyDir\hostPath\pvc\configMap\secret\downward
+	Type               string             `json:"type"`
+	ConfigMapRefVolume ConfigMapRefVolume `json:"configMapRefVolume"`
+	SecretRefVolume    SecretRefVolume    `json:"secretRefVolume"`
+	HostPathVolume     HostPathVolume     `json:"hostPathVolume"`
+	DownWardAPIVolume  DownWardAPIVolume  `json:"downwardApiVolume"`
+	PvcVolume          PvcVolume          `json:"pvcVolume"`
 }
 type DnsConfig struct {
 	NameServers []string `json:"nameservers"`

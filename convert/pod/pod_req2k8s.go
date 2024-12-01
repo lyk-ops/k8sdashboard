@@ -16,6 +16,11 @@ const (
 	probe_tcp               = "tcp"
 	probe_exec              = "exec"
 	volume_emptyDir         = "emptyDir"
+	volume_configMap        = "configMap"
+	volume_secret           = "secret"
+	volume_hostPath         = "hostPath"
+	volume_downword         = "downwardAPI"
+	volume_pvc              = "pvc"
 	scheduling_nodename     = "=nodeName"
 	scheduling_nodeselector = "=nodeSelector"
 	scheduling_nodeaffinity = "=nodeAffinity"
@@ -112,10 +117,66 @@ func (pc *Req2K8sConvert) getK8sHostAliases(podReqHostAliases []base.ListMapItem
 func (pc *Req2K8sConvert) getK8sVolumes(podReqVolumes []pod_req.Volume) []corev1.Volume {
 	podK8sVolumes := make([]corev1.Volume, 0)
 	for _, volume := range podReqVolumes {
-		if volume.Type != volume_emptyDir {
+		//if volume.Type != volume_emptyDir {
+		//	continue
+		//}
+		source := corev1.VolumeSource{}
+		switch volume.Type {
+		case volume_emptyDir:
+			source = corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			}
+		case volume_hostPath:
+			source = corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: volume.HostPathVolume.Path,
+					Type: &volume.HostPathVolume.Type,
+				},
+			}
+		case volume_configMap:
+			source = corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: volume.ConfigMapRefVolume.Name,
+					},
+					Optional: &volume.ConfigMapRefVolume.Optional,
+				},
+			}
+		case volume_secret:
+			source = corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: volume.SecretRefVolume.Name,
+				},
+			}
+		case volume_downword:
+			items := make([]corev1.DownwardAPIVolumeFile, 0)
+			for _, item := range volume.DownWardAPIVolume.Items {
+				items = append(items, corev1.DownwardAPIVolumeFile{
+					// 容器内的文件访问路径
+					Path: item.Path,
+					FieldRef: &corev1.ObjectFieldSelector{
+						FieldPath: item.FieldRefPath,
+					},
+				})
+
+				source = corev1.VolumeSource{
+					DownwardAPI: &corev1.DownwardAPIVolumeSource{
+						Items: []corev1.DownwardAPIVolumeFile{},
+					},
+				}
+			}
+		case volume_pvc:
+			source = corev1.VolumeSource{
+				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+					ClaimName: volume.PvcVolume.ClaimName,
+				},
+			}
+
+		default:
 			continue
 		}
-		source := corev1.VolumeSource{
+
+		source = corev1.VolumeSource{
 			EmptyDir: &corev1.EmptyDirVolumeSource{},
 		}
 		podK8sVolumes = append(podK8sVolumes, corev1.Volume{

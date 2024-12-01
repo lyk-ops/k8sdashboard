@@ -71,3 +71,8 @@ SotrageClass
 - 查看  列表
 
 pod管理的修改（卷管理）
+优化点：
+- downward fileRefPath没有显示
+- PVC选择PV或者SC只能二选一
+- 模糊查询keyword
+- PV 显示storage-class字段

@@ -33,7 +33,7 @@ func (PVApi) DeletePV(c *gin.Context) {
 	}
 }
 func (PVApi) GetPVList(c *gin.Context) {
-	list, err := pvService.GetPvList()
+	list, err := pvService.GetPvList(c.Query("keyword"))
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 	} else {

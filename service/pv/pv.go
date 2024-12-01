@@ -11,6 +11,7 @@ import (
 	pv_res "kubeimook/model/pv/response"
 	"kubeimook/utils"
 	"strconv"
+	"strings"
 )
 
 type PVService struct {
@@ -51,13 +52,16 @@ func (PVService) DeletePV(_ string, name string) error {
 	err := global.KubeConfigSet.CoreV1().PersistentVolumes().Delete(context.TODO(), name, metav1.DeleteOptions{})
 	return err
 }
-func (PVService) GetPvList() ([]pv_res.PersistentVolume, error) {
+func (PVService) GetPvList(keyword string) ([]pv_res.PersistentVolume, error) {
 	pvList, err := global.KubeConfigSet.CoreV1().PersistentVolumes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
 	pvResList := make([]pv_res.PersistentVolume, 0)
 	for _, item := range pvList.Items {
+		if !strings.Contains(item.Name, keyword) {
+			continue
+		}
 		//k8s-->response
 		claim := ""
 		if item.Spec.ClaimRef != nil {
@@ -74,7 +78,7 @@ func (PVService) GetPvList() ([]pv_res.PersistentVolume, error) {
 			Claim:            claim,
 			Age:              item.CreationTimestamp.Unix(),
 			Reason:           item.Status.Reason,
-			StorageClassName: "",
+			StorageClassName: item.Spec.StorageClassName, //当PV是通过SC创建时，这里会显示SC的名称
 		}
 		pvResList = append(pvResList, pvRes)
 	}

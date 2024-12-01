@@ -34,4 +34,14 @@ func (*K8sRouter) InitK8sRouter(r *gin.Engine) {
 	group.POST("/pv", apiGroup.CreatePV)
 	group.DELETE("/pv/:namespace/:name", apiGroup.DeletePV)
 	group.GET("/pv/:name", apiGroup.GetPVList)
+
+	//pvc
+	group.POST("/pvc", apiGroup.CreatePVC)
+	group.DELETE("/pvc/:namespace/:name", apiGroup.DeletePVC)
+	group.GET("/pvc/:namespace", apiGroup.GetPVCList)
+
+	//storageClass
+	group.POST("/sc", apiGroup.CreateStroageClass)
+	group.DELETE("/sc/:namespace/:name", apiGroup.DeleteStroageClass)
+	group.GET("/sc/:name", apiGroup.ListStroageClass)
 }
